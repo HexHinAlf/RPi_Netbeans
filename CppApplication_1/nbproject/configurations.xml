@@ -40,9 +40,7 @@
         </ccTool>
         <linkerTool>
           <linkerLibItems>
-            <linkerOptionItem>-lraspicam</linkerOptionItem>
-            <linkerOptionItem>-lraspicam_cv</linkerOptionItem>
-            <linkerOptionItem>-lopencv_core -lopencv_highgui</linkerOptionItem>
+            <linkerOptionItem>-ldl -lpthread -lasound -lz -lm -lrt -lopencv_core -lopencv_imgproc -lopencv_imgcodecs -lopencv_highgui -lraspicam -lraspicam_cv</linkerOptionItem>
           </linkerLibItems>
         </linkerTool>
       </compileType>

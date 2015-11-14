@@ -52,7 +52,7 @@ FFLAGS=
 ASFLAGS=
 
 # Link Libraries and Options
-LDLIBSOPTIONS=-lraspicam -lraspicam_cv -lopencv_core -lopencv_highgui
+LDLIBSOPTIONS=-ldl -lpthread -lasound -lz -lm -lrt -lopencv_core -lopencv_imgproc -lopencv_imgcodecs -lopencv_highgui -lraspicam -lraspicam_cv
 
 # Build Targets
 .build-conf: ${BUILD_SUBPROJECTS}
