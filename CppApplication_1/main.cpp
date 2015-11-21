@@ -19,54 +19,94 @@
 #include <opencv2/core/core.hpp>
 #include <opencv2/opencv.hpp>
 #include <opencv2/highgui/highgui.hpp>
+#include <tesseract/baseapi.h>
+#include <leptonica/allheaders.h>
 
-using namespace cv;
-using namespace std;
+//using namespace cv;
+//using namespace std;
 
 int main(int argc, char **argv) {
-    time_t timer_begin, timer_end;
     raspicam::RaspiCam_Cv Camera;
+    tesseract::TessBaseAPI *tess = new tesseract::TessBaseAPI();
+    // Initialize tesseract-ocr with German, without specifying tessdata path
+    if (tess->Init(NULL, "deu")) {
+        fprintf(stderr, "Could not initialize tesseract.\n");
+        exit(1);
+    }
+    char *outText;
+    
+    //Matrix image for openCV
+    cv::Mat cameraImage;
+    cv::Mat editorImage;
+    cv::Mat resultImage;
+    //Windows
+    std::string cameraWindowName = "Camera";
+    std::string editorWindowName = "Corrected Image";
+    std::string resultWindowName = "Tesseract Output";
 
-    Mat image;
-    int nCount = 100;
-    string wname = "uBot";
+    //cv::namedWindow(cameraWindowName, cv::WINDOW_NORMAL); // Create a window for display.
+    cv::namedWindow(editorWindowName, cv::WINDOW_NORMAL);
+    cv::namedWindow(resultWindowName, cv::WINDOW_NORMAL);
 
-    // create a simple window to display the video
-    namedWindow(wname, WINDOW_AUTOSIZE); // Create a window for display.
-
-    //set camera params
+    //set camera parameter
+    //Camera.set(CV_CAP_PROP_EXPOSURE, 1);
+    //Camera.set(CV_CAP_PROP_FRAME_WIDTH, 800);
+    //Camera.set(CV_CAP_PROP_FRAME_HEIGHT, 600);
     Camera.set(CV_CAP_PROP_FORMAT, CV_8UC3);
+    
     //Open camera
-    cout << "Opening Camera..." << endl;
+    std::cout << "Opening Camera..." << std::endl;
     if (!Camera.open()) {
-        cerr << "Error opening the camera" << endl;
+        std::cerr << "Error opening the camera" << std::endl;
         return -1;
     }
 
+    
     //Start capture
-    cout << "Capturing " << nCount << " frames ...." << endl;
-    time(&timer_begin);
-
-    for (int i = 0; i < nCount; i++) {
-        Camera.grab();
-        Camera.retrieve(image);
-        imshow(wname, image);
-
-        cout << "\r captured " << i << " images" << std::flush;
-        waitKey(1);
-    }
-    cout << "Stop camera..." << endl;
+    cv::waitKey(2000);
+    Camera.grab();
+    Camera.retrieve(cameraImage);
+    
+    // create a simple window to display the video
+    //cv::imshow(cameraWindowName, cameraImage);
+    
+    std::cout << "Stop camera..." << std::endl;
     Camera.release();
-    //show time statistics
-    time(&timer_end); /* get current time; same as: timer = time(NULL)  */
+    
+    
+    //edit image to greyscale
+    cv::cvtColor(cameraImage,editorImage,CV_RGB2GRAY);
+    cv::imshow(editorWindowName, editorImage);
+    
+    
+    
+    //convert to text
+    tess->SetImage((uchar*)editorImage.data, editorImage.size().width, editorImage.size().height, editorImage.channels(), editorImage.step1());
+    tess->Recognize(0);
+    outText = tess->GetUTF8Text();
+    
+    //display text
+    resultImage = cv::Mat::zeros(250,250,CV_8U);
+    cv::putText(resultImage, outText, cv::Point(0,50), CV_FONT_HERSHEY_SIMPLEX, 0.4, cv::Scalar(255),1,8,false);
+    cv::imshow(resultWindowName, resultImage);
+    
+    
 
-    double secondsElapsed = difftime(timer_end, timer_begin);
-    cout << secondsElapsed << " seconds for " << nCount << "  frames : FPS = " << (float) ((float) (nCount) / secondsElapsed) << endl;
+    //show time statistics
+//    time(&timer_end); /* get current time; same as: timer = time(NULL)  */
+//
+//    double secondsElapsed = difftime(timer_end, timer_begin);
+//    cout << secondsElapsed << " seconds for " << nCount << "  frames : FPS = " << (float) ((float) (nCount) / secondsElapsed) << endl;
 
     // save image 
-    cv::imwrite("raspicam_cv_image.jpg", image);
-    cout << "Image saved at raspicam_cv_image.jpg" << endl;
+    //cv::imwrite("raspicam_cv_image.jpg", image);
+    std::cout << "Image saved at raspicam_cv_image.jpg" << std::endl;
+    std::cout << outText << std::endl;
 
-    waitKey(0);
-
+    cv::waitKey(0);
+    
+    cv::destroyAllWindows();
+    tess->End();
+    delete [] outText;
+    
 }

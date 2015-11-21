@@ -40,7 +40,7 @@
         </ccTool>
         <linkerTool>
           <linkerLibItems>
-            <linkerOptionItem>-ldl -lpthread -lasound -lz -lm -lrt -lopencv_core -lopencv_imgproc -lopencv_imgcodecs -lopencv_highgui -lraspicam -lraspicam_cv</linkerOptionItem>
+            <linkerOptionItem>-ldl -lpthread -lasound -lz -lm -lrt -lopencv_core -lopencv_imgproc -lopencv_imgcodecs -lopencv_highgui -lraspicam -lraspicam_cv -llept -ltesseract</linkerOptionItem>
           </linkerLibItems>
         </linkerTool>
       </compileType>
