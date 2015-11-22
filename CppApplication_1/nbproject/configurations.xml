@@ -4,6 +4,7 @@
     <logicalFolder name="HeaderFiles"
                    displayName="Header Files"
                    projectFiles="true">
+      <itemPath>main.hpp</itemPath>
     </logicalFolder>
     <logicalFolder name="ResourceFiles"
                    displayName="Resource Files"
@@ -40,11 +41,17 @@
         </ccTool>
         <linkerTool>
           <linkerLibItems>
-            <linkerOptionItem>-ldl -lpthread -lasound -lz -lm -lrt -lopencv_core -lopencv_imgproc -lopencv_imgcodecs -lopencv_highgui -lraspicam -lraspicam_cv -llept -ltesseract</linkerOptionItem>
+            <linkerOptionItem>-ldl -lpthread -lasound -lz -lm -lrt</linkerOptionItem>
+            <linkerOptionItem>-lboost_thread</linkerOptionItem>
+            <linkerOptionItem>-llept -ltesseract</linkerOptionItem>
+            <linkerOptionItem>-lopencv_core -lopencv_imgproc -lopencv_imgcodecs -lopencv_highgui</linkerOptionItem>
+            <linkerOptionItem>-lraspicam -lraspicam_cv</linkerOptionItem>
           </linkerLibItems>
         </linkerTool>
       </compileType>
       <item path="main.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="main.hpp" ex="false" tool="3" flavor2="0">
       </item>
     </conf>
     <conf name="Release" type="1">
@@ -69,6 +76,8 @@
         </asmTool>
       </compileType>
       <item path="main.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="main.hpp" ex="false" tool="3" flavor2="0">
       </item>
     </conf>
   </confs>
