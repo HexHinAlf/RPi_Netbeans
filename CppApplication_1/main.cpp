@@ -26,14 +26,16 @@ void task1(int number)
 }
 
 int main(int argc, char **argv) {
+    std::vector<boost::thread *> tessThreads;
+    
     raspicam::RaspiCam_Cv Camera;
-    tesseract::TessBaseAPI *tess = new tesseract::TessBaseAPI();
-    // Initialize tesseract-ocr with German, without specifying tessdata path
-    if (tess->Init(NULL, "deu")) {
-        fprintf(stderr, "Could not initialize tesseract.\n");
-        exit(1);
-    }
-    char *outText;
+//    tesseract::TessBaseAPI *tess = new tesseract::TessBaseAPI();
+//    // Initialize tesseract-ocr with German, without specifying tessdata path
+//    if (tess->Init(NULL, "deu")) {
+//        fprintf(stderr, "Could not initialize tesseract.\n");
+//        exit(1);
+//    }
+    //char *outText;
     
     //Matrix image for openCV
     cv::Mat cameraImage;
@@ -88,25 +90,15 @@ int main(int argc, char **argv) {
     /// Show the image
     //getTextblocks(cameraImage, NULL);
     
-    cv::Mat textMask = cv::Mat::zeros( cameraImage.size(), editorImage.type());
-    auto correctionPoint = cv::Point(20,20);
-    int testnumber = 0;
+    //cv::Mat textMask = cv::Mat::zeros( cameraImage.size(), editorImage.type());
+    //auto correctionPoint = cv::Point(20,20);
     for (auto box : detectLetters(cameraImage))
     {
-        cv::rectangle( textMask, box.tl()-correctionPoint, box.br()+correctionPoint, cv::Scalar(255,0,255), CV_FILLED, 8, 0 );
+        //cv::rectangle( textMask, box.tl()-correctionPoint, box.br()+correctionPoint, cv::Scalar(255,0,255), CV_FILLED, 8, 0 );
         
         auto img = editorImage(box);
-        boost::thread t(getText,tess, img);
-        //boost::thread t(task1, testnumber);
-        t.join();
-
-        testnumber++;
+        tessThreads.push_back(new boost::thread(getText, img));
     }
-    
-        //convert to text
-//    tess->SetImage((uchar*)editorImage.data, editorImage.size().width, editorImage.size().height, editorImage.channels(), editorImage.step1());
-//    tess->Recognize(0);
-//    outText = tess->GetUTF8Text();
     
     //display text
 //    resultImage = cv::Mat::zeros(250,250,CV_8U);
@@ -114,14 +106,25 @@ int main(int argc, char **argv) {
 //    cv::imshow(resultWindowName, resultImage);
     
     
-    editorImage.copyTo( resultImage, textMask);
-    cv::imshow(editorWindowName, resultImage);
+    //editorImage.copyTo( resultImage, textMask);
+    //cv::imshow(editorWindowName, resultImage);
+    
+    int numberOfThreads = tessThreads.size();
+    
+    //join threads
+    for (auto tessThread : tessThreads)
+    {
+        tessThread->join();
+        delete tessThread;
+    }
 
-    cv::waitKey(0);
+    std::cout << "\nProgrammende! Es wurden " << numberOfThreads << " Threads zur Texterkennung genutzt." << std::endl;
+    
+    //cv::waitKey(0);
     
     cv::destroyAllWindows();
-    tess->End();
-    delete [] outText;
+    //tess->End();
+    //delete [] outText;
     
 }
 
@@ -215,15 +218,24 @@ std::vector<cv::Rect> detectLetters(cv::Mat img)
     return boundRect;
 }
 
-void getText(tesseract::TessBaseAPI *tess, cv::Mat img)
+void getText(cv::Mat img)
 {
+    tesseract::TessBaseAPI *tess = new tesseract::TessBaseAPI();
+    // Initialize tesseract-ocr with German, without specifying tessdata path
+    if (tess->Init(NULL, "deu")) {
+        fprintf(stderr, "Could not initialize tesseract.\n");
+        exit(1);
+    }
     char *outText;
     //convert img to text
     tess->SetImage((uchar*)img.data, img.size().width, img.size().height, img.channels(), img.step1());
     tess->Recognize(0);
     outText = tess->GetUTF8Text();
     
-    std::cout << outText << std::endl;
+    if(std::strlen(outText) > 10)
+        std::cout << outText;// << std::endl;
     
     //std::cout << "I am a thread" << std::endl;
+    tess->End();
+    delete [] outText;
 }
