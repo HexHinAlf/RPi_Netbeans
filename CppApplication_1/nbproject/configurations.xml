@@ -42,10 +42,10 @@
         <linkerTool>
           <linkerLibItems>
             <linkerOptionItem>-ldl -lpthread -lasound -lz -lm -lrt</linkerOptionItem>
-            <linkerOptionItem>-lboost_thread</linkerOptionItem>
             <linkerOptionItem>-llept -ltesseract</linkerOptionItem>
             <linkerOptionItem>-lopencv_core -lopencv_imgproc -lopencv_imgcodecs -lopencv_highgui</linkerOptionItem>
             <linkerOptionItem>-lraspicam -lraspicam_cv</linkerOptionItem>
+            <linkerOptionItem>-lboost_system -lboost_thread</linkerOptionItem>
           </linkerLibItems>
         </linkerTool>
       </compileType>

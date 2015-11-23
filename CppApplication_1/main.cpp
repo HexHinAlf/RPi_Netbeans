@@ -20,6 +20,11 @@
 //using namespace cv;
 //using namespace std;
 
+void task1(int number)
+{
+    std::cout << "task" << number << " says hello" << std::endl;
+}
+
 int main(int argc, char **argv) {
     raspicam::RaspiCam_Cv Camera;
     tesseract::TessBaseAPI *tess = new tesseract::TessBaseAPI();
@@ -73,9 +78,32 @@ int main(int argc, char **argv) {
     cv::cvtColor(cameraImage,editorImage,CV_RGB2GRAY);
     //cv::imshow(editorWindowName, editorImage);
     
+    // save image 
+    //cv::imwrite("raspicam_cv_image.jpg", image);
+    //std::cout << "Image saved at raspicam_cv_image.jpg" << std::endl;
+
+    /// Create a Trackbar for user to enter threshold
+    //cv::createTrackbar( "Min Threshold:", window_name, &lowThreshold, max_lowThreshold, CannyThreshold );
+
+    /// Show the image
+    //getTextblocks(cameraImage, NULL);
     
+    cv::Mat textMask = cv::Mat::zeros( cameraImage.size(), editorImage.type());
+    auto correctionPoint = cv::Point(20,20);
+    int testnumber = 0;
+    for (auto box : detectLetters(cameraImage))
+    {
+        cv::rectangle( textMask, box.tl()-correctionPoint, box.br()+correctionPoint, cv::Scalar(255,0,255), CV_FILLED, 8, 0 );
+        
+        auto img = editorImage(box);
+        boost::thread t(getText,tess, img);
+        //boost::thread t(task1, testnumber);
+        t.join();
+
+        testnumber++;
+    }
     
-    //convert to text
+        //convert to text
 //    tess->SetImage((uchar*)editorImage.data, editorImage.size().width, editorImage.size().height, editorImage.channels(), editorImage.step1());
 //    tess->Recognize(0);
 //    outText = tess->GetUTF8Text();
@@ -85,30 +113,6 @@ int main(int argc, char **argv) {
 //    cv::putText(resultImage, outText, cv::Point(0,50), CV_FONT_HERSHEY_SIMPLEX, 0.4, cv::Scalar(255),1,8,false);
 //    cv::imshow(resultWindowName, resultImage);
     
-    
-    // save image 
-    //cv::imwrite("raspicam_cv_image.jpg", image);
-    //std::cout << "Image saved at raspicam_cv_image.jpg" << std::endl;
-    std::cout << outText << std::endl;
-    
-    
-    
-    
-
-    
-
-    /// Create a Trackbar for user to enter threshold
-    //cv::createTrackbar( "Min Threshold:", window_name, &lowThreshold, max_lowThreshold, CannyThreshold );
-
-    /// Show the image
-    //getTextblocks(cameraImage, NULL);
-    
-    cv::Mat textMask = cv::Mat::zeros( cameraImage.size(), editorImage.type());
-    cv::Point correctionPoint = cv::Point(20,20);
-    for (auto box : detectLetters(cameraImage))
-    {
-        cv::rectangle(textMask, box.tl()-correctionPoint, box.br()+correctionPoint, cv::Scalar(255,255,255), CV_FILLED, 8, 0 );      
-    }
     
     editorImage.copyTo( resultImage, textMask);
     cv::imshow(editorWindowName, resultImage);
@@ -209,4 +213,17 @@ std::vector<cv::Rect> detectLetters(cv::Mat img)
                 boundRect.push_back(appRect);
         }
     return boundRect;
+}
+
+void getText(tesseract::TessBaseAPI *tess, cv::Mat img)
+{
+    char *outText;
+    //convert img to text
+    tess->SetImage((uchar*)img.data, img.size().width, img.size().height, img.channels(), img.step1());
+    tess->Recognize(0);
+    outText = tess->GetUTF8Text();
+    
+    std::cout << outText << std::endl;
+    
+    //std::cout << "I am a thread" << std::endl;
 }
