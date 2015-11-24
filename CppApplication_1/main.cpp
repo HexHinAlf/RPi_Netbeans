@@ -46,15 +46,15 @@ int main(int argc, char **argv) {
     std::string editorWindowName = "Corrected Image";
     std::string resultWindowName = "Tesseract Output";
     // Create a window for display.
-    cv::namedWindow(cameraWindowName, cv::WINDOW_NORMAL);
-    cv::namedWindow(editorWindowName, cv::WINDOW_AUTOSIZE);
+    //cv::namedWindow(cameraWindowName, cv::WINDOW_NORMAL);
+    cv::namedWindow(editorWindowName, cv::WINDOW_NORMAL);
     //cv::namedWindow(resultWindowName, cv::WINDOW_NORMAL);
 
     //set camera parameter
     //Camera.set(CV_CAP_PROP_EXPOSURE, 1);
-    //Camera.set(CV_CAP_PROP_FRAME_WIDTH, 800);
-    //Camera.set(CV_CAP_PROP_FRAME_HEIGHT, 600);
-    Camera.set(CV_CAP_PROP_FORMAT, CV_8UC3);
+    //Camera.set(CV_CAP_PROP_FRAME_WIDTH, 1280);
+    //Camera.set(CV_CAP_PROP_FRAME_HEIGHT, 960);
+    //Camera.set(CV_CAP_PROP_FORMAT, CV_8UC3);
     
     //Open camera
     std::cout << "Opening Camera..." << std::endl;
@@ -70,7 +70,7 @@ int main(int argc, char **argv) {
     Camera.retrieve(cameraImage);
     
     // create a simple window to display the video
-    cv::imshow(cameraWindowName, cameraImage);
+    //cv::imshow(cameraWindowName, cameraImage);
     
     std::cout << "Stop camera..." << std::endl;
     Camera.release();
@@ -91,13 +91,15 @@ int main(int argc, char **argv) {
     //getTextblocks(cameraImage, NULL);
     
     //cv::Mat textMask = cv::Mat::zeros( cameraImage.size(), editorImage.type());
-    //auto correctionPoint = cv::Point(20,20);
+    auto correctionPoint = cv::Point(20,20);
+    resultImage = cameraImage;
     for (auto box : detectLetters(cameraImage))
     {
-        //cv::rectangle( textMask, box.tl()-correctionPoint, box.br()+correctionPoint, cv::Scalar(255,0,255), CV_FILLED, 8, 0 );
-        
-        auto img = editorImage(box);
+        cv::rectangle( resultImage, box.tl()-correctionPoint, box.br()+correctionPoint, cv::Scalar(255,0,255), 2, 8, 0 );
+        cv::Mat img = editorImage(box);
+        //cv::threshold(editorImage(box), img, 100, 255, cv::THRESH_BINARY);
         tessThreads.push_back(new boost::thread(getText, img));
+        
     }
     
     //display text
@@ -108,6 +110,7 @@ int main(int argc, char **argv) {
     
     //editorImage.copyTo( resultImage, textMask);
     //cv::imshow(editorWindowName, resultImage);
+    cv::imshow(editorWindowName, resultImage);
     
     int numberOfThreads = tessThreads.size();
     
@@ -120,7 +123,7 @@ int main(int argc, char **argv) {
 
     std::cout << "\nProgrammende! Es wurden " << numberOfThreads << " Threads zur Texterkennung genutzt." << std::endl;
     
-    //cv::waitKey(0);
+    cv::waitKey(0);
     
     cv::destroyAllWindows();
     //tess->End();
@@ -221,6 +224,9 @@ std::vector<cv::Rect> detectLetters(cv::Mat img)
 void getText(cv::Mat img)
 {
     tesseract::TessBaseAPI *tess = new tesseract::TessBaseAPI();
+    
+    //tess->SetVariable("tessedit_char_whitelist", "ABCDEFGHIJKLMNOPQRSTUVWXYZÜÖÄabcdefghijklmnopqrstuvwxyzüöäß012345789,.-!?");
+    
     // Initialize tesseract-ocr with German, without specifying tessdata path
     if (tess->Init(NULL, "deu")) {
         fprintf(stderr, "Could not initialize tesseract.\n");
