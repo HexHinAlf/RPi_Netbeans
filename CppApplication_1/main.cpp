@@ -14,21 +14,14 @@
  * Created on 11. November 2015, 22:11
  */
 
- /**
-*/
-
-//using namespace cv;
-//using namespace std;
-
-void task1(int number)
-{
-    std::cout << "task" << number << " says hello" << std::endl;
-}
-
 int main(int argc, char **argv) {
     std::vector<boost::thread *> tessThreads;
     
-    raspicam::RaspiCam_Cv Camera;
+    //raspicam::RaspiCam_Cv CameraVM; //hard coded video mode, max 1280x960, user only for motion detection
+    
+    raspicam::RaspiCam_Still_Cv Camera; // still mode, 5MP
+    
+    
 //    tesseract::TessBaseAPI *tess = new tesseract::TessBaseAPI();
 //    // Initialize tesseract-ocr with German, without specifying tessdata path
 //    if (tess->Init(NULL, "deu")) {
@@ -52,8 +45,8 @@ int main(int argc, char **argv) {
 
     //set camera parameter
     //Camera.set(CV_CAP_PROP_EXPOSURE, 1);
-    //Camera.set(CV_CAP_PROP_FRAME_WIDTH, 1280);
-    //Camera.set(CV_CAP_PROP_FRAME_HEIGHT, 960);
+    Camera.set(CV_CAP_PROP_FRAME_WIDTH, 2592);
+    Camera.set(CV_CAP_PROP_FRAME_HEIGHT, 1944);
     //Camera.set(CV_CAP_PROP_FORMAT, CV_8UC3);
     
     //Open camera
@@ -65,7 +58,7 @@ int main(int argc, char **argv) {
 
     
     //Start capture
-    cv::waitKey(2000);
+    cv::waitKey(500); //shorter time for still mode
     Camera.grab();
     Camera.retrieve(cameraImage);
     
@@ -74,7 +67,7 @@ int main(int argc, char **argv) {
     
     std::cout << "Stop camera..." << std::endl;
     Camera.release();
-    
+    std::cout << "Camera stopped?!" << std::endl;
     
     //edit image to greyscale
     cv::cvtColor(cameraImage,editorImage,CV_RGB2GRAY);
@@ -205,7 +198,7 @@ std::vector<cv::Rect> detectLetters(cv::Mat img)
     cv::cvtColor(img, img_gray, CV_BGR2GRAY);
     cv::Sobel(img_gray, img_sobel, CV_8U, 1, 0, 3, 1, 0, cv::BORDER_DEFAULT);
     cv::threshold(img_sobel, img_threshold, 0, 255, CV_THRESH_OTSU+CV_THRESH_BINARY);
-    element = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(30, 30) );
+    element = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(80, 50) );
     cv::morphologyEx(img_threshold, img_threshold, CV_MOP_CLOSE, element); //Does the trick
     std::vector< std::vector< cv::Point> > contours;
     cv::findContours(img_threshold, contours, 0, 1); 

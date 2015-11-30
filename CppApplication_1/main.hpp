@@ -22,6 +22,7 @@
 #include <stdio.h>
 
 #include <raspicam/raspicam_cv.h>
+#include <raspicam/raspicam_still_cv.h>
 
 #include <opencv2/core/core.hpp>
 #include <opencv2/opencv.hpp>
